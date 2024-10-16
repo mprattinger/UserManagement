@@ -9,14 +9,16 @@ builder.Services.AddPresentation();
 
 var app = builder.Build();
 
-app.MapGet("/", (HttpContext ctx) => {
-    
-var errors = new List<Error>();
-errors.Add(Error.Failure("ABCD", "Fehler"));
-errors.Add(Error.Failure("EFGH", "Fehler2"));
-errors.Add(Error.Failure("IJKL", "Fehler3"));
+app.MapGet("/", () =>
+{
+     var errors = new List<Error>
+     {
+         Error.Failure("ABCD", "Fehler"),
+         Error.Failure("EFGH", "Fehler2"),
+         Error.Failure("IJKL", "Fehler3")
+     };
 
-    return CustomProblemDetailResult.Problem(errors,ctx);
-     });
+     return errors.ToProblemDetails();
+});
 
 app.Run();
