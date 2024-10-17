@@ -5,6 +5,7 @@ using UserManagement.Api;
 using UserManagement.Api.Common.Errors;
 using UserManagement.Api.Features;
 using UserManagement.Api.Infrastructure;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,8 +13,8 @@ builder.Services.AddEndpoints(Assembly.GetExecutingAssembly());
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddProblemDetails();
-builder.Services.AddAuthentication();
-builder.Services.AddAuthorization();
+
+
 
 builder.Services.AddPresentation();
 builder.Services.AddInfrastructure(builder.Configuration);

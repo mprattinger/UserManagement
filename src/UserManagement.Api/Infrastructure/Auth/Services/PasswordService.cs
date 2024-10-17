@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace UserManagement.Api.Infrastructure.Data.Services;
+namespace UserManagement.Api.Infrastructure.Auth.Services;
 
 public interface IPasswordService
 {

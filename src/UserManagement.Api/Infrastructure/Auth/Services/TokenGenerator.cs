@@ -4,7 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using UserManagement.Api.Features.Auth.Models;
 
-namespace UserManagement.Api.Infrastructure.Data.Services;
+namespace UserManagement.Api.Infrastructure.Auth.Services;
 
 public interface ITokenGenerator
 {
@@ -23,7 +23,8 @@ public class TokenGenerator(IDateTimeProvider dateTimeProvider, JwtSettings jwtS
         var claims = new[] {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(JwtRegisteredClaimNames.Name, user.Username)
+            new Claim(JwtRegisteredClaimNames.Name, user.Username),
+            new Claim("UMUID", user.Id.ToString())
         };
 
         var secToken = new JwtSecurityToken(

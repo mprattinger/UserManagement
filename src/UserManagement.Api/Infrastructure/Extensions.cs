@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using UserManagement.Api.Features.Auth.Models;
+using UserManagement.Api.Infrastructure.Auth;
+using UserManagement.Api.Infrastructure.Auth.Services;
 using UserManagement.Api.Infrastructure.Data;
-using UserManagement.Api.Infrastructure.Data.Services;
 
 namespace UserManagement.Api.Infrastructure;
 
@@ -40,6 +42,10 @@ public static class Extensions
                     Encoding.UTF8.GetBytes(jwtConf?.Secret!))
             });
 
+        services.AddAuthorization();
+        services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+        services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
+services.AddScoped<IPermissionService, PermissionService>();
         return services;
     }
 }

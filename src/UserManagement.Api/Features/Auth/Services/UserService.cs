@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Api.Features.Auth.Models;
+using UserManagement.Api.Infrastructure.Auth.Services;
 using UserManagement.Api.Infrastructure.Data;
-using UserManagement.Api.Infrastructure.Data.Services;
 
 namespace UserManagement.Api.Features.Auth.Services;
 
