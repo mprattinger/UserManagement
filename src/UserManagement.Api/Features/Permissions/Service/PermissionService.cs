@@ -1,4 +1,5 @@
 ﻿using ErrorOr;
+using FlintSoft.Permissions;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Api.Features.Permissions.Models;
 using UserManagement.Api.Infrastructure.Data;
@@ -11,11 +12,9 @@ public interface IPermissionService
     Task<ErrorOr<HashSet<string>>> GetUserPermission(Guid userid);
     Task<ErrorOr<Permission>> SetPermission(SetPermissionRequest request);
     Task<ErrorOr<List<Permission>>> SetPermissions(SetPermissionsRequest request);
-
-    Task<ErrorOr<Permission>> HasPermission(Guid userId, string permission);
 }
 
-public class PermissionService(DataContext dataContext) : IPermissionService
+public class PermissionService(DataContext dataContext) : IPermissionService, IPermissionCheckService
 {
     /*
      * 
@@ -55,63 +54,6 @@ public class PermissionService(DataContext dataContext) : IPermissionService
         }
 
         return myPerm.Select(x => String.IsNullOrEmpty(x.PermissionName) ? x.Group : $"{x.Group}.{x.PermissionName}").ToHashSet();
-    }
-
-    public async Task<ErrorOr<Permission>> HasPermission(Guid userId, string permission)
-    {
-        if (string.IsNullOrEmpty(permission))
-        {
-            return Error.Conflict("PERMISSION.NOPERM", "No permission to check from");
-        }
-
-        string group = "";
-        string perm = "";
-        if (permission.Contains('.'))
-        {
-            var permissionItems = permission.Split('.');
-
-            if (permissionItems.Length > 2)
-            {
-                return Error.Conflict("PERMISSION.NOTVALID", "The given permission is not valid");
-            }
-
-            group = permissionItems[0];
-            perm = permissionItems[1];
-        }
-        else
-        {
-            group = permission;
-        }
-
-        //Prüfen ob der User rechte hat -> mal alle Rechte des Users holen
-        var perms = await dataContext.Permissions.Where(x => x.UserId == userId).ToListAsync();
-        if (perms is null)
-        {
-            return Error.NotFound("PERMISSION.GETMY", "Couldn't find any permissions for the current user");
-        }
-
-        //Admin hat immer rechte
-        var admin = perms.FirstOrDefault(x => x.Group == "ADMIN");
-        if (admin is not null)
-        {
-            return admin;
-        }
-
-        //Globale Rechte auf die Gruppe?
-        var global = perms.FirstOrDefault(x => x.Group == group && x.PermissionName == "");
-        if (global is not null)
-        {
-            return global;
-        }
-
-        //Spezifische Rechte
-        var specific = perms.FirstOrDefault(x => x.Group == group && x.PermissionName == perm);
-        if (specific is not null)
-        {
-            return specific;
-        }
-
-        return Error.NotFound("PERMISSION.NOPERM", "Feature is not allowed for the current user");
     }
 
     public async Task<ErrorOr<Permission>> SetPermission(SetPermissionRequest request)
@@ -182,4 +124,118 @@ public class PermissionService(DataContext dataContext) : IPermissionService
 
         return permList;
     }
+
+    public async Task<bool> HasPermission(Guid userId, string permission)
+    {
+        if (string.IsNullOrEmpty(permission))
+        {
+            return false;
+        }
+
+        string group = "";
+        string perm = "";
+        if (permission.Contains('.'))
+        {
+            var permissionItems = permission.Split('.');
+
+            if (permissionItems.Length > 2)
+            {
+                return false;
+            }
+
+            group = permissionItems[0];
+            perm = permissionItems[1];
+        }
+        else
+        {
+            group = permission;
+        }
+
+        //Prüfen ob der User rechte hat -> mal alle Rechte des Users holen
+        var perms = await dataContext.Permissions.Where(x => x.UserId == userId).ToListAsync();
+        if (perms is null)
+        {
+            return false;
+        }
+
+        //Admin hat immer rechte
+        var admin = perms.FirstOrDefault(x => x.Group == "ADMIN");
+        if (admin is not null)
+        {
+            return true;
+        }
+
+        //Globale Rechte auf die Gruppe?
+        var global = perms.FirstOrDefault(x => x.Group == group && x.PermissionName == "");
+        if (global is not null)
+        {
+            return true;
+        }
+
+        //Spezifische Rechte
+        var specific = perms.FirstOrDefault(x => x.Group == group && x.PermissionName == perm);
+        if (specific is not null)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    //public async Task<ErrorOr<Permission>> HasPermission(Guid userId, string permission)
+    //{
+    //    if (string.IsNullOrEmpty(permission))
+    //    {
+    //        return Error.Conflict("PERMISSION.NOPERM", "No permission to check from");
+    //    }
+
+    //    string group = "";
+    //    string perm = "";
+    //    if (permission.Contains('.'))
+    //    {
+    //        var permissionItems = permission.Split('.');
+
+    //        if (permissionItems.Length > 2)
+    //        {
+    //            return Error.Conflict("PERMISSION.NOTVALID", "The given permission is not valid");
+    //        }
+
+    //        group = permissionItems[0];
+    //        perm = permissionItems[1];
+    //    }
+    //    else
+    //    {
+    //        group = permission;
+    //    }
+
+    //    //Prüfen ob der User rechte hat -> mal alle Rechte des Users holen
+    //    var perms = await dataContext.Permissions.Where(x => x.UserId == userId).ToListAsync();
+    //    if (perms is null)
+    //    {
+    //        return Error.NotFound("PERMISSION.GETMY", "Couldn't find any permissions for the current user");
+    //    }
+
+    //    //Admin hat immer rechte
+    //    var admin = perms.FirstOrDefault(x => x.Group == "ADMIN");
+    //    if (admin is not null)
+    //    {
+    //        return admin;
+    //    }
+
+    //    //Globale Rechte auf die Gruppe?
+    //    var global = perms.FirstOrDefault(x => x.Group == group && x.PermissionName == "");
+    //    if (global is not null)
+    //    {
+    //        return global;
+    //    }
+
+    //    //Spezifische Rechte
+    //    var specific = perms.FirstOrDefault(x => x.Group == group && x.PermissionName == perm);
+    //    if (specific is not null)
+    //    {
+    //        return specific;
+    //    }
+
+    //    return Error.NotFound("PERMISSION.NOPERM", "Feature is not allowed for the current user");
+    //}
 }

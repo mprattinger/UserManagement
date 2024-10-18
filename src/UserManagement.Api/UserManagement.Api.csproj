@@ -23,4 +23,8 @@
     <Folder Include="Infrastructure\Auth\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\FlintSoft.Permissions\FlintSoft.Permissions.csproj" />
+  </ItemGroup>
+
 </Project>

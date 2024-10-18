@@ -9,14 +9,23 @@ public class PermissionAuthorizationHandler(IServiceScopeFactory serviceScopeFac
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
                                                    PermissionRequirement requirement)
     {
-        string? userId = context.User.Claims.FirstOrDefault(x => x.Type == "SUB" || x.Type == "UMUID")?.Value;
+        using IServiceScope scope = serviceScopeFactory.CreateScope();
+
+        var settings = scope.ServiceProvider.GetRequiredService<PermissionSettings>();
+
+        var type = settings.ClaimType;
+        if (string.IsNullOrEmpty(type))
+        {
+            type = "sub";
+        }
+
+        string? userId = context.User.Claims.FirstOrDefault(x => x.Type == type)?.Value;
 
         if (!Guid.TryParse(userId, out var parsedUserId))
         {
             return;
         }
 
-        using IServiceScope scope = serviceScopeFactory.CreateScope();
         IPermissionCheckService permissionService = scope.ServiceProvider.GetRequiredService<IPermissionCheckService>();
 
         var res = await permissionService.HasPermission(parsedUserId, requirement.Permission);

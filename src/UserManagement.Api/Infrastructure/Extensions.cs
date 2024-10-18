@@ -1,10 +1,9 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
+﻿using FlintSoft.Permissions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using UserManagement.Api.Features.Auth.Models;
-using UserManagement.Api.Infrastructure.Auth;
 using UserManagement.Api.Infrastructure.Auth.Services;
 using UserManagement.Api.Infrastructure.Data;
 
@@ -30,21 +29,25 @@ public static class Extensions
         }
 
         services.AddAuthentication(defaultScheme: JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options => options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+            .AddJwtBearer(options =>
             {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtConf?.Issuer,
-                ValidAudience = jwtConf?.Audience,
-                IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(jwtConf?.Secret!))
+                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtConf?.Issuer,
+                    ValidAudience = jwtConf?.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(jwtConf?.Secret!)),
+
+                };
+                options.MapInboundClaims = false;
             });
 
         services.AddAuthorization();
-        services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
-        services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
+        services.AddPermissions(configuration);
 
         return services;
     }
