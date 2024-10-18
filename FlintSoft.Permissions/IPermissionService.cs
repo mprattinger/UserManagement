@@ -1,6 +1,6 @@
 ﻿namespace FlintSoft.Permissions;
 
-public interface IPermissionCheckService<T>
+public interface IPermissionCheckService
 {
-    Task<T> HasPermission(Guid userId, string permission);
+    Task<bool> HasPermission(Guid userId, string permission);
 }

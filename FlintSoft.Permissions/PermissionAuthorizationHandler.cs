@@ -20,11 +20,11 @@ public class PermissionAuthorizationHandler(IServiceScopeFactory serviceScopeFac
         IPermissionCheckService permissionService = scope.ServiceProvider.GetRequiredService<IPermissionCheckService>();
 
         var res = await permissionService.HasPermission(parsedUserId, requirement.Permission);
-        if (res.IsError)
+        if (res)
         {
-            return;
+            context.Succeed(requirement);
         }
 
-        context.Succeed(requirement);
+        return;
     }
 }
