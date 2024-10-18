@@ -61,13 +61,13 @@ jobs:
             ls ${{ github.workspace }}/src/FlintSoft.Permissions
 
       - name: Restore
-        run: dotnet restore ./src/FlintSoft.Permissions/FlintsSoft.Permissions.csproj
+        run: dotnet restore ${{ github.workspace }}/src/FlintSoft.Permissions/FlintSoft.Permissions.csproj
 
       - name: Build
-        run: dotnet build -c Release --no-restore ${{ github.workspace }}/src/FlintSoft.Permissions/FlintsSoft.Permissions.csproj
+        run: dotnet build -c Release --no-restore ${{ github.workspace }}/src/FlintSoft.Permissions/FlintSoft.Permissions.csproj
 
       - name: Pack
-        run: dotnet pack -c Release --no-restore -o ${{ env.NuGetDirectory }} -p:PackageVersion=${{ env.semVer }} ${{ github.workspace }}/src/FlintSoft.Permissions/FlintsSoft.Permissions.csproj
+        run: dotnet pack -c Release --no-restore -o ${{ env.NuGetDirectory }} -p:PackageVersion=${{ env.semVer }} ${{ github.workspace }}/src/FlintSoft.Permissions/FlintSoft.Permissions.csproj
 
       - name: Publish NuGet package
         run: |
