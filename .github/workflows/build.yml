@@ -54,7 +54,12 @@ jobs:
       - name: Use the version
         run: |
             echo ${{ env.semVer }}
-    
+      
+      - name: PWD
+        run: |
+            pwd
+            ls
+            
       - name: Restore
         run: dotnet restore ${{ github.workspace }}/src/FlintSoft.Permissions/FlintsSoft.Permissions.csproj
 
