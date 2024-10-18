@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UserManagement.AppHost", "s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UserManagement.ServiceDefaults", "src\UserManagement.ServiceDefaults\UserManagement.ServiceDefaults.csproj", "{8DFFB2BE-BA1F-4959-A509-8612EB4CBE3E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlintSoft.Permissions", "FlintSoft.Permissions\FlintSoft.Permissions.csproj", "{E9A004A1-3E46-4787-8265-34C40BE794A9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlintSoft.Permissions", "src\FlintSoft.Permissions\FlintSoft.Permissions.csproj", "{E9A004A1-3E46-4787-8265-34C40BE794A9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
