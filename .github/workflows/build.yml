@@ -59,9 +59,9 @@ jobs:
         run: |
             pwd
             ls
-            
+
       - name: Restore
-        run: dotnet restore ${{ github.workspace }}/src/FlintSoft.Permissions/FlintsSoft.Permissions.csproj
+        run: dotnet restore ./src/FlintSoft.Permissions/FlintsSoft.Permissions.csproj
 
       - name: Build
         run: dotnet build -c Release --no-restore ${{ github.workspace }}/src/FlintSoft.Permissions/FlintsSoft.Permissions.csproj
