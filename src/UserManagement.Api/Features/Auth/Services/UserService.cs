@@ -22,7 +22,7 @@ public class UserService(DataContext dataContext, IPasswordService passwordServi
             return Error.NotFound("AUTH.USEREXISTS", "User doesn't exists");
         }
 
-        var dbuser = await dataContext.Users.FirstOrDefaultAsync(x => x.Username == x.Username);
+        var dbuser = await dataContext.Users.FirstOrDefaultAsync(x => x.Username == user.Username);
         if (dbuser is null)
         {
             return Error.NotFound("AUTH.USEREXISTS", "User doesn't exists");

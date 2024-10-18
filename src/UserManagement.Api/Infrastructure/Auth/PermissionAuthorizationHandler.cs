@@ -1,7 +1,6 @@
-using System;
-using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
-using UserManagement.Api.Infrastructure.Auth.Services;
+using System.IdentityModel.Tokens.Jwt;
+using UserManagement.Api.Features.Permissions.Service;
 
 namespace UserManagement.Api.Infrastructure.Auth;
 
@@ -21,11 +20,12 @@ public class PermissionAuthorizationHandler(IServiceScopeFactory serviceScopeFac
         using IServiceScope scope = serviceScopeFactory.CreateScope();
         IPermissionService permissionService = scope.ServiceProvider.GetRequiredService<IPermissionService>();
 
-        var permissions = await permissionService.GetPermissionsAsync(parsedUserId);
-
-        if (permissions.Contains(requirement.Permission))
+        var res = await permissionService.HasPermission(parsedUserId, requirement.Permission);
+        if (res.IsError)
         {
-            context.Succeed(requirement);
+            return;
         }
+
+        context.Succeed(requirement);
     }
 }

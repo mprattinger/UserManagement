@@ -45,7 +45,7 @@ public static class Extensions
         services.AddAuthorization();
         services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
-services.AddScoped<IPermissionService, PermissionService>();
+
         return services;
     }
 }
