@@ -1,5 +1,6 @@
 ﻿using ErrorOr;
 using FlintSoft.Endpoints;
+using Microsoft.Kiota.Abstractions.Authentication;
 using UserManagement.Api.Common.Errors;
 using UserManagement.Api.Features.Auth.Models;
 using UserManagement.Api.Features.Auth.Services;
@@ -25,6 +26,13 @@ public class AuthEndpoints : IEndpoint
 
             return Results.Ok();
         });
+
+        app.MapGet("/auth/register2", async (IAccessTokenProvider accessProvider, HttpContext context) =>
+        {
+
+            return Results.Ok();
+        })
+            .RequireAuthorization();
 
         app.MapPost("/auth/login", async (User? user, IUserService userService) =>
         {
