@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\FlintSoft.Permissions\FlintSoft.Permissions.csproj" />
+    <ProjectReference Include="..\FlintSoft.Permissions\FlintSoft.Permissions.csproj" />
   </ItemGroup>
 
 </Project>
