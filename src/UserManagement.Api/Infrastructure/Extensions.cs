@@ -1,8 +1,5 @@
 ﻿using FlintSoft.Permissions;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Kiota.Abstractions.Authentication;
 using System.Text;
@@ -31,8 +28,8 @@ public static class Extensions
             services.AddSingleton(jwtConf);
         }
 
-        services.AddAuthentication(defaultScheme: JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
+        services.AddAuthentication()
+            .AddJwtBearer("Local", options =>
             {
                 options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
                 {
@@ -49,26 +46,45 @@ public static class Extensions
                 options.Authority = "https://localhost:7183/";
                 options.Audience = jwtConf?.Audience;
             })
-            .AddMicrosoftIdentityWebApi(jwtOptions =>
+            .AddJwtBearer("EntraId", options =>
             {
-                jwtOptions.MapInboundClaims = false;
-                jwtOptions.Authority = configuration.GetSection("EntraId").GetValue<string>("Authority");
+                options.Authority = configuration.GetSection("EntraId").GetValue<string>("Authority");
+                options.Audience = configuration.GetSection("EntraId").GetValue<string>("ClientId");
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = "https://login.microsoftonline.com/common/v2.0"
+                };
+            })
+            ;
+        //.AddMicrosoftIdentityWebApi(jwtOptions =>
+        //{
+        //    jwtOptions.MapInboundClaims = false;
+        //    jwtOptions.Authority = configuration.GetSection("EntraId").GetValue<string>("Authority");
 
-            },
-            identityOptions =>
-            {
-                configuration.GetSection("EntraId").Bind(identityOptions);
-            }, jwtBearerScheme: "EntraId");
+        //},
+        //identityOptions =>
+        //{
+        //    configuration.GetSection("EntraId").Bind(identityOptions);
+        //}, jwtBearerScheme: "EntraId");
 
+        //services.AddAuthorization(options =>
+        //{
+        //    var authBuilder = new AuthorizationPolicyBuilder([
+        //        JwtBearerDefaults.AuthenticationScheme,
+        //        "EntraId"]);
+
+        //    var authPolicy = authBuilder.RequireAuthenticatedUser();
+
+        //    options.DefaultPolicy = authPolicy.Build();
+        //});
         services.AddAuthorization(options =>
         {
-            var authBuilder = new AuthorizationPolicyBuilder([
-                JwtBearerDefaults.AuthenticationScheme,
-                "EntraId"]);
-
-            var authPolicy = authBuilder.RequireAuthenticatedUser();
-
-            options.DefaultPolicy = authPolicy.Build();
+            options.AddPolicy("MultiScheme", policy =>
+            {
+                policy.AddAuthenticationSchemes("EntraId", "Local");
+                policy.RequireAuthenticatedUser();
+            });
         });
 
         services.AddPermissions(configuration);

@@ -17,6 +17,6 @@ public class BusinessPartnerEndpoint : IEndpoint
 
             return Results.Ok(bps);
         })
-            .RequireAuthorization("BP.Read");
+            .RequireAuthorization("MultiScheme", "BP.Read");
     }
 }
