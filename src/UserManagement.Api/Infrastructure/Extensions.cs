@@ -1,9 +1,12 @@
 ﻿using FlintSoft.Permissions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Kiota.Abstractions.Authentication;
 using System.Text;
+using System.Text.Json;
 using UserManagement.Api.Features.Auth.Models;
+using UserManagement.Api.Infrastructure.Auth;
 using UserManagement.Api.Infrastructure.Auth.Services;
 using UserManagement.Api.Infrastructure.Data;
 
@@ -11,7 +14,7 @@ namespace UserManagement.Api.Infrastructure;
 
 public static class Extensions
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static async Task<IServiceCollection> AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
@@ -28,10 +31,31 @@ public static class Extensions
             services.AddSingleton(jwtConf);
         }
 
-        services.AddAuthentication()
+        var url = configuration.GetSection("EntraId").GetValue<string>("OpenIDConfUrl");
+        var httpClient = new HttpClient();
+        var res = await httpClient.GetStringAsync(url);
+        var conf = JsonSerializer.Deserialize<OpenIdConfigurationResponse>(res);
+        if (conf is null)
+        {
+            throw new Exception("Cannot load openid configuration from endpoint");
+        }
+
+        var jwksResp = await httpClient.GetStringAsync(conf.jwks_uri);
+        var jwks = JsonSerializer.Deserialize<JsonWebKeySet>(jwksResp);
+        if (jwks is null)
+        {
+            throw new Exception("Cannot load signing keys from jwks endpoint");
+        }
+
+        services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
             .AddJwtBearer("Local", options =>
             {
-                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
@@ -50,42 +74,28 @@ public static class Extensions
             {
                 options.Authority = configuration.GetSection("EntraId").GetValue<string>("Authority");
                 options.Audience = configuration.GetSection("EntraId").GetValue<string>("ClientId");
+
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
-                    ValidIssuer = "https://login.microsoftonline.com/common/v2.0"
+                    ValidIssuer = conf.issuer,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKeys = jwks.Keys,
+                    ValidateAudience = true,
+                    ValidAudience = configuration.GetSection("EntraId").GetValue<string>("ClientId"),
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = async (ctx) =>
+                    {
+                        Console.WriteLine(ctx.Exception.Message);
+                    }
                 };
             })
             ;
-        //.AddMicrosoftIdentityWebApi(jwtOptions =>
-        //{
-        //    jwtOptions.MapInboundClaims = false;
-        //    jwtOptions.Authority = configuration.GetSection("EntraId").GetValue<string>("Authority");
 
-        //},
-        //identityOptions =>
-        //{
-        //    configuration.GetSection("EntraId").Bind(identityOptions);
-        //}, jwtBearerScheme: "EntraId");
-
-        //services.AddAuthorization(options =>
-        //{
-        //    var authBuilder = new AuthorizationPolicyBuilder([
-        //        JwtBearerDefaults.AuthenticationScheme,
-        //        "EntraId"]);
-
-        //    var authPolicy = authBuilder.RequireAuthenticatedUser();
-
-        //    options.DefaultPolicy = authPolicy.Build();
-        //});
-        services.AddAuthorization(options =>
-        {
-            options.AddPolicy("MultiScheme", policy =>
-            {
-                policy.AddAuthenticationSchemes("EntraId", "Local");
-                policy.RequireAuthenticatedUser();
-            });
-        });
+        services.AddAuthorization();
 
         services.AddPermissions(configuration);
 

@@ -32,7 +32,7 @@ public class AuthEndpoints : IEndpoint
 
             return Results.Ok();
         })
-            .RequireAuthorization();
+            .RequireAuthorization("EntraId");
 
         app.MapPost("/auth/login", async (User? user, IUserService userService) =>
         {

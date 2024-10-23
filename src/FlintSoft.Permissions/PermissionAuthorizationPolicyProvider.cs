@@ -13,14 +13,34 @@ public class PermissionAuthorizationPolicyProvider
 
     public override async Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
     {
-        var policy = await base.GetPolicyAsync(policyName);
-        if (policy is not null)
-        {
-            return policy;
-        }
+        var builder = new AuthorizationPolicyBuilder();
 
-        return new AuthorizationPolicyBuilder()
-            .AddRequirements(new PermissionRequirement(policyName))
-            .Build();
+        if (policyName == "EntraId")
+        {
+            return builder.AddAuthenticationSchemes("EntraId")
+                .RequireAuthenticatedUser()
+                .Build();
+        }
+        else
+        {
+            //Haben wir das Multischeme?
+            var multipolicy = await base.GetPolicyAsync("MultiScheme");
+            if (multipolicy is null)
+            {
+                builder
+                    .AddAuthenticationSchemes("EntraId", "Local")
+                    .RequireAuthenticatedUser();
+            }
+
+            var policy = await base.GetPolicyAsync(policyName);
+            if (policy is not null)
+            {
+                return policy;
+            }
+
+            return builder
+                .AddRequirements(new PermissionRequirement(policyName))
+                .Build();
+        }
     }
 }
